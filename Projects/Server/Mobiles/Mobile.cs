@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Server.Accounting;
 using Server.Buffers;
 using Server.Collections;
@@ -412,8 +413,6 @@ namespace Server
         [CommandProperty(AccessLevel.Counselor)]
         public virtual int EnergyResistance => GetResistance(ResistanceType.Energy);
 
-        public List<ResistanceMod> ResistanceMods { get; set; }
-
         public static int MaxPlayerResistance { get; set; } = 70;
 
         public virtual bool NewGuildDisplay => false;
@@ -425,6 +424,19 @@ namespace Server
 
         public object Party { get; set; }
 
+        /// <summary>
+        ///     Gets a list of all <see cref="StatMod">StatMods</see> currently active for the Mobile.
+        /// </summary>
+        public HashSet<StatMod> StatMods { get; private set; }
+
+        /// <summary>
+        ///     Gets a list of all <see cref="ResistanceMod">ResistanceMods</see> currently active for the Mobile.
+        /// </summary>
+        public HashSet<ResistanceMod> ResistanceMods { get; private set; }
+
+        /// <summary>
+        ///     Gets a list of all <see cref="SkillMod">SkillMods</see> currently active for the Mobile.
+        /// </summary>
         public HashSet<SkillMod> SkillMods { get; private set; }
 
         [CommandProperty(AccessLevel.GameMaster)]
@@ -1794,11 +1806,6 @@ namespace Server
         }
 
         /// <summary>
-        ///     Gets a list of all <see cref="StatMod">StatMod's</see> currently active for the Mobile.
-        /// </summary>
-        public HashSet<StatMod> StatMods { get; private set; }
-
-        /// <summary>
         ///     Gets or sets the base, unmodified, strength of the Mobile. Ranges from 1 to 65000, inclusive.
         ///     <seealso cref="Str" />
         ///     <seealso cref="StatMod" />
@@ -3102,65 +3109,40 @@ namespace Server
             return res;
         }
 
-        public virtual void AddResistanceMod(ResistanceMod toAdd)
+        public virtual void AddResistanceMod(ResistanceMod mod)
         {
-            if (ResistanceMods == null)
-            {
-                ResistanceMods = new List<ResistanceMod> { toAdd };
-            }
-            else
-            {
-                bool modified = false;
-
-                if (toAdd.Name != null)
-                {
-                    for (var i = 0; i < ResistanceMods.Count; i++)
-                    {
-                        if (ResistanceMods[i].Name == toAdd.Name)
-                        {
-                            modified = true;
-                            ResistanceMods[i] = toAdd;
-                        }
-                    }
-                }
-
-                if (!modified)
-                {
-                    ResistanceMods.Add(toAdd);
-                }
-            }
-
-            UpdateResistances();
-        }
-
-        public void RemoveResistanceMod(string name)
-        {
-            if (ResistanceMods == null)
+            if (mod == null)
             {
                 return;
             }
 
-            bool removed = false;
+            ResistanceMods ??= new HashSet<ResistanceMod>();
+            ResistanceMods.Add(mod);
 
-            for (var i = 0; i < ResistanceMods.Count; i++)
+            UpdateResistances();
+        }
+
+        private static ResistanceMod _resistanceModEqualValue;
+
+        public void RemoveResistanceMod(string name)
+        {
+            if (ResistanceMods == null || name == null)
             {
-                if (ResistanceMods[i].Name == name)
-                {
-                    ResistanceMods.RemoveAt(i);
-                    removed = true;
-                    break;
-                }
+                return;
             }
 
-            if (removed)
+            if (_resistanceModEqualValue == null)
             {
-                if (ResistanceMods.Count == 0)
-                {
-                    ResistanceMods = null;
-                }
-
-                UpdateResistances();
+                _resistanceModEqualValue = new ResistanceMod(this);
             }
+            else
+            {
+                _resistanceModEqualValue.Owner = this;
+            }
+
+            _resistanceModEqualValue.Name = name;
+
+            RemoveResistanceMod(_resistanceModEqualValue);
         }
 
         public virtual void RemoveResistanceMod(ResistanceMod toRemove)
@@ -3195,9 +3177,8 @@ namespace Server
             Resistances[3] += BasePoisonResistance;
             Resistances[4] += BaseEnergyResistance;
 
-            for (var i = 0; i < ResistanceMods?.Count; ++i)
+            foreach (var mod in ResistanceMods)
             {
-                var mod = ResistanceMods[i];
                 var v = (int)mod.Type;
 
                 if (v >= 0 && v < Resistances.Length)
@@ -3434,17 +3415,6 @@ namespace Server
         {
         }
 
-        public virtual void UpdateSkillMods()
-        {
-            ValidateSkillMods();
-
-            foreach (var mod in SkillMods)
-            {
-                var sk = Skills[mod.Skill];
-                sk?.Update();
-            }
-        }
-
         public virtual void ValidateSkillMods()
         {
             using var queue = PooledRefQueue<SkillMod>.Create(8);
@@ -3474,9 +3444,7 @@ namespace Server
             if (SkillMods.Add(mod))
             {
                 mod.Owner = this;
-
-                var sk = Skills[mod.Skill];
-                sk?.Update();
+                Skills[mod.Skill]?.Update();
             }
         }
 
@@ -3496,9 +3464,7 @@ namespace Server
             if (SkillMods.Remove(mod))
             {
                 mod.Owner = null;
-
-                var sk = Skills[mod.Skill];
-                sk?.Update();
+                Skills[mod.Skill]?.Update();
             }
         }
 
@@ -8372,13 +8338,10 @@ namespace Server
 
         public bool RemoveStatMod(string name)
         {
-            StatMods ??= new HashSet<StatMod>();
+            var mod = GetStatMod(name);
 
-            StatMod mod = GetStatMod(name);
-
-            if (mod != null)
+            if (mod != null && StatMods.Remove(mod))
             {
-                StatMods.Remove(mod);
                 CheckStatTimers();
                 Delta(MobileDelta.Stat | GetStatDelta(mod.Type));
                 return true;
@@ -8387,24 +8350,38 @@ namespace Server
             return false;
         }
 
+        private static StatMod _statModEqualValue;
+
         public StatMod GetStatMod(string name)
         {
-            StatMods ??= new HashSet<StatMod>();
-
-            foreach (var check in StatMods)
+            if (name == null)
             {
-                if (check.Name == name)
-                {
-                    return check;
-                }
+                return null;
             }
 
-            return null;
+            StatMods ??= new HashSet<StatMod>();
+
+            if (_statModEqualValue == null)
+            {
+                _statModEqualValue = new StatMod(this);
+            }
+            else
+            {
+                _statModEqualValue.Owner = this;
+            }
+
+            _statModEqualValue.Name = name;
+
+            StatMods.TryGetValue(_statModEqualValue, out var mod);
+            return mod;
         }
 
-        public void AddStatMod(StatMod mod)
+        public virtual void AddStatMod(StatMod mod)
         {
-            RemoveStatMod(mod.Name);
+            if (mod == null)
+            {
+                return;
+            }
 
             StatMods.Add(mod);
             Delta(MobileDelta.Stat | GetStatDelta(mod.Type));
