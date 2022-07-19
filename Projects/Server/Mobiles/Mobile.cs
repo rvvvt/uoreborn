@@ -3104,22 +3104,77 @@ namespace Server
 
         public virtual void AddResistanceMod(ResistanceMod toAdd)
         {
-            ResistanceMods ??= new List<ResistanceMod>();
+            if (ResistanceMods == null)
+            {
+                ResistanceMods = new List<ResistanceMod> { toAdd };
+            }
+            else
+            {
+                bool modified = false;
 
-            ResistanceMods.Add(toAdd);
+                if (toAdd.Name != null)
+                {
+                    for (var i = 0; i < ResistanceMods.Count; i++)
+                    {
+                        if (ResistanceMods[i].Name == toAdd.Name)
+                        {
+                            modified = true;
+                            ResistanceMods[i] = toAdd;
+                        }
+                    }
+                }
+
+                if (!modified)
+                {
+                    ResistanceMods.Add(toAdd);
+                }
+            }
+
             UpdateResistances();
         }
 
-        public virtual void RemoveResistanceMod(ResistanceMod toRemove)
+        public void RemoveResistanceMod(string name)
         {
-            if (ResistanceMods != null)
+            if (ResistanceMods == null)
             {
-                ResistanceMods.Remove(toRemove);
+                return;
+            }
 
+            bool removed = false;
+
+            for (var i = 0; i < ResistanceMods.Count; i++)
+            {
+                if (ResistanceMods[i].Name == name)
+                {
+                    ResistanceMods.RemoveAt(i);
+                    removed = true;
+                    break;
+                }
+            }
+
+            if (removed)
+            {
                 if (ResistanceMods.Count == 0)
                 {
                     ResistanceMods = null;
                 }
+
+                UpdateResistances();
+            }
+        }
+
+        public virtual void RemoveResistanceMod(ResistanceMod toRemove)
+        {
+            if (ResistanceMods == null)
+            {
+                return;
+            }
+
+            ResistanceMods.Remove(toRemove);
+
+            if (ResistanceMods.Count == 0)
+            {
+                ResistanceMods = null;
             }
 
             UpdateResistances();

@@ -28,5 +28,9 @@ public partial class DefaultSkillMod : SkillMod
     {
     }
 
+    public DefaultSkillMod(SkillName skill, string name, bool relative, double value) : base(skill, name, relative, value)
+    {
+    }
+
     public override bool CheckCondition() => true;
 }
