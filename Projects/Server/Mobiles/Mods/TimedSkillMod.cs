@@ -28,11 +28,6 @@ public partial class TimedSkillMod : SkillMod
     {
     }
 
-    public TimedSkillMod(SkillName skill, bool relative, double value, TimeSpan delay)
-        : this(skill, null, relative, value, delay)
-    {
-    }
-
     public TimedSkillMod(SkillName skill, string name, bool relative, double value, TimeSpan delay)
         : this(skill, name, relative, value, Core.Now + delay)
     {

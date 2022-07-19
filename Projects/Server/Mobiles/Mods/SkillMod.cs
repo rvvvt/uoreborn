@@ -30,11 +30,6 @@ public abstract partial class SkillMod : MobileMod
     {
     }
 
-    public SkillMod(SkillName skill, bool relative, double value, Mobile owner = null)
-        : this(skill, null, relative, value, owner)
-    {
-    }
-
     public SkillMod(SkillName skill, string name, bool relative, double value, Mobile owner = null) : base(owner, name)
     {
         _skill = skill;

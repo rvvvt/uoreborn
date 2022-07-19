@@ -426,6 +426,10 @@ namespace Server
 
         public object Party { get; set; }
 
+        public HashSet<SkillMod> SkillMods => _skillMods;
+        public HashSet<StatMod> StatMods => _statMods;
+        public HashSet<ResistanceMod> ResistanceMods => _resistanceMods;
+
         [CommandProperty(AccessLevel.GameMaster)]
         public int VirtualArmorMod
         {

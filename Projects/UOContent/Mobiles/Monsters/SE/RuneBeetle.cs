@@ -110,7 +110,7 @@ namespace Server.Mobiles
              * End ASCII: "The corruption of your armor has worn off"
              */
 
-            if (m_Table.TryGetValue(defender, out var timer))
+            if (m_Table.Remove(defender, out var timer))
             {
                 timer.DoExpire();
                 defender.SendLocalizedMessage(1070845); // The creature continues to corrupt your armor!
@@ -126,27 +126,45 @@ namespace Server.Mobiles
             {
                 if (defender.PhysicalResistance > 0)
                 {
-                    mods.Add(new ResistanceMod(ResistanceType.Physical, -(defender.PhysicalResistance / 2)));
+                    mods.Add(
+                        new ResistanceMod(
+                            ResistanceType.Physical,
+                            "PhysicalResistRuneBeetle",
+                            -(defender.PhysicalResistance / 2)
+                        )
+                    );
                 }
 
                 if (defender.FireResistance > 0)
                 {
-                    mods.Add(new ResistanceMod(ResistanceType.Fire, -(defender.FireResistance / 2)));
+                    mods.Add(new ResistanceMod(ResistanceType.Fire, "FireResistRuneBeetle", -(defender.FireResistance / 2)));
                 }
 
                 if (defender.ColdResistance > 0)
                 {
-                    mods.Add(new ResistanceMod(ResistanceType.Cold, -(defender.ColdResistance / 2)));
+                    mods.Add(new ResistanceMod(ResistanceType.Cold, "ColdResistRuneBeetle", -(defender.ColdResistance / 2)));
                 }
 
                 if (defender.PoisonResistance > 0)
                 {
-                    mods.Add(new ResistanceMod(ResistanceType.Poison, -(defender.PoisonResistance / 2)));
+                    mods.Add(
+                        new ResistanceMod(
+                            ResistanceType.Poison,
+                            "PoisonResistRuneBeetle",
+                            -(defender.PoisonResistance / 2)
+                        )
+                    );
                 }
 
                 if (defender.EnergyResistance > 0)
                 {
-                    mods.Add(new ResistanceMod(ResistanceType.Energy, -(defender.EnergyResistance / 2)));
+                    mods.Add(
+                        new ResistanceMod(
+                            ResistanceType.Energy,
+                            "EnergyResistRuneBeetle",
+                            -(defender.EnergyResistance / 2)
+                        )
+                    );
                 }
             }
             else
@@ -156,6 +174,7 @@ namespace Server.Mobiles
                     mods.Add(
                         new ResistanceMod(
                             ResistanceType.Physical,
+                            "PhysicalResistRuneBeetle",
                             defender.PhysicalResistance > 70 ? -70 : -defender.PhysicalResistance
                         )
                     );
@@ -166,6 +185,7 @@ namespace Server.Mobiles
                     mods.Add(
                         new ResistanceMod(
                             ResistanceType.Fire,
+                            "FireResistRuneBeetle",
                             defender.FireResistance > 70 ? -70 : -defender.FireResistance
                         )
                     );
@@ -176,6 +196,7 @@ namespace Server.Mobiles
                     mods.Add(
                         new ResistanceMod(
                             ResistanceType.Cold,
+                            "ColdResistRuneBeetle",
                             defender.ColdResistance > 70 ? -70 : -defender.ColdResistance
                         )
                     );
@@ -186,6 +207,7 @@ namespace Server.Mobiles
                     mods.Add(
                         new ResistanceMod(
                             ResistanceType.Poison,
+                            "PoisonResistRuneBeetle",
                             defender.PoisonResistance > 70 ? -70 : -defender.PoisonResistance
                         )
                     );
@@ -196,6 +218,7 @@ namespace Server.Mobiles
                     mods.Add(
                         new ResistanceMod(
                             ResistanceType.Energy,
+                            "EnergyResistRuneBeetle",
                             defender.EnergyResistance > 70 ? -70 : -defender.EnergyResistance
                         )
                     );
@@ -229,11 +252,12 @@ namespace Server.Mobiles
             {
                 for (var i = 0; i < Skills.Length; ++i)
                 {
-                    Skills[i].Cap = Math.Max(100.0, Skills[i].Cap * 0.9);
+                    var skill = Skills[i];
+                    skill.Cap = Math.Max(100.0, skill.Cap * 0.9);
 
-                    if (Skills[i].Base > Skills[i].Cap)
+                    if (skill.Base > skill.Cap)
                     {
-                        Skills[i].Base = Skills[i].Cap;
+                        skill.Base = skill.Cap;
                     }
                 }
             }
@@ -258,13 +282,13 @@ namespace Server.Mobiles
                 }
 
                 Stop();
-                m_Table.Remove(m_Mobile);
             }
 
             protected override void OnTick()
             {
                 m_Mobile.SendMessage("The corruption of your armor has worn off");
                 DoExpire();
+                m_Table.Remove(m_Mobile);
             }
         }
     }

@@ -24,10 +24,6 @@ public partial class DefaultSkillMod : SkillMod
     {
     }
 
-    public DefaultSkillMod(SkillName skill, bool relative, double value) : base(skill, relative, value)
-    {
-    }
-
     public DefaultSkillMod(SkillName skill, string name, bool relative, double value) : base(skill, name, relative, value)
     {
     }

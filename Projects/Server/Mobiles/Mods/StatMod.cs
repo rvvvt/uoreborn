@@ -37,10 +37,6 @@ public partial class StatMod : MobileMod
     {
     }
 
-    public StatMod(StatType type, int offset, TimeSpan duration, Mobile owner = null) : this(type, null, offset, duration, owner)
-    {
-    }
-
     public StatMod(StatType type, string name, int offset, TimeSpan duration, Mobile owner = null) : base(owner, name)
     {
         _type = type;

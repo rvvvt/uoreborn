@@ -82,32 +82,15 @@ namespace Server.Mobiles
 
              * */
 
-            if (rand <= 0)
+            return rand switch
             {
-                return 0x8258;
-            }
-
-            if (rand <= 1)
-            {
-                return 0x88AB;
-            }
-
-            if (rand <= 6)
-            {
-                return 0x87D4;
-            }
-
-            if (rand <= 16)
-            {
-                return 0x8163;
-            }
-
-            if (rand <= 26)
-            {
-                return 0x8295;
-            }
-
-            return 0;
+                <= 0  => 0x8258,
+                <= 1  => 0x88AB,
+                <= 6  => 0x87D4,
+                <= 16 => 0x8163,
+                <= 26 => 0x8295,
+                _     => 0
+            };
         }
 
         public override bool OverrideBondingReqs()
@@ -178,21 +161,20 @@ namespace Server.Mobiles
                * Effect: Type: "3" - From: "0x57D4F5B" (player) - To: "0x0" - ItemId: "0x37B9" - ItemIdName: "glow" - FromLocation: "(1149 808, 32)" - ToLocation: "(1149 808, 32)" - Speed: "10" - Duration: "5" - FixedDirection: "True" - Explode: "False"
                */
 
-            if (m_Table.TryGetValue(defender, out var timer))
+            if (m_Table.Remove(defender, out var timer))
             {
                 timer.DoExpire();
                 defender.SendLocalizedMessage(1070837); // The creature lands another blow in your weakened state.
             }
             else
             {
-                defender.SendLocalizedMessage(
-                    1070836
-                ); // The blow from the creature's claws has made you more susceptible to physical attacks.
+                // The blow from the creature's claws has made you more susceptible to physical attacks.
+                defender.SendLocalizedMessage(1070836);
             }
 
             var effect = -(defender.PhysicalResistance * 15 / 100);
 
-            var mod = new ResistanceMod(ResistanceType.Physical, effect);
+            var mod = new ResistanceMod(ResistanceType.Physical, "PhysicalResistHiryu", effect);
 
             defender.FixedEffect(0x37B9, 10, 5);
             defender.AddResistanceMod(mod);

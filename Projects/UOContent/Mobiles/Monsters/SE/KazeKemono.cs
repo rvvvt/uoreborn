@@ -72,7 +72,7 @@ namespace Server.Mobiles
                  * Effect: Type: "3" From: "0x57D4F5B" To: "0x0" ItemId: "0x37B9" ItemIdName: "glow" FromLocation: "(1048 779, 6)" ToLocation: "(1048 779, 6)" Speed: "10" Duration: "5" FixedDirection: "True" Explode: "False"
                  */
 
-                if (m_FlurryOfTwigsTable.TryGetValue(defender, out var timer))
+                if (m_FlurryOfTwigsTable.Remove(defender, out var timer))
                 {
                     timer.DoExpire();
                     defender.SendLocalizedMessage(1070851); // The creature lands another blow in your weakened state.
@@ -86,7 +86,7 @@ namespace Server.Mobiles
 
                 var effect = -(defender.PhysicalResistance * 15 / 100);
 
-                var mod = new ResistanceMod(ResistanceType.Physical, effect);
+                var mod = new ResistanceMod(ResistanceType.Physical, "PhysicalResistKazeKemono", effect);
 
                 defender.FixedEffect(0x37B9, 10, 5);
                 defender.AddResistanceMod(mod);
@@ -120,7 +120,7 @@ namespace Server.Mobiles
 
                 var effect = -(defender.EnergyResistance / 2);
 
-                var mod = new ResistanceMod(ResistanceType.Energy, effect);
+                var mod = new ResistanceMod(ResistanceType.Energy, "EnergyResistKazeKemono", effect);
 
                 defender.FixedEffect(0x37B9, 10, 5);
                 defender.AddResistanceMod(mod);
@@ -161,7 +161,6 @@ namespace Server.Mobiles
             {
                 m_Mobile.RemoveResistanceMod(m_Mod);
                 Stop();
-                m_Table.Remove(m_Mobile);
             }
 
             protected override void OnTick()
@@ -176,6 +175,7 @@ namespace Server.Mobiles
                 }
 
                 DoExpire();
+                m_Table.Remove(m_Mobile);
             }
         }
     }

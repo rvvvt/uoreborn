@@ -27,11 +27,6 @@ public partial class EquippedSkillMod : SkillMod
     {
     }
 
-    public EquippedSkillMod(SkillName skill, bool relative, double value, Item item, Mobile owner)
-        : this(skill, null, relative, value, item, owner)
-    {
-    }
-
     public EquippedSkillMod(SkillName skill, string name, bool relative, double value, Item item, Mobile owner)
         : base(skill, name, relative, value, owner) => _item = item;
 

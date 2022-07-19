@@ -30,10 +30,6 @@ public partial class ResistanceMod : MobileMod
     {
     }
 
-    public ResistanceMod(ResistanceType type, int offset, Mobile owner = null) : this(type, null, offset, owner)
-    {
-    }
-
     public ResistanceMod(ResistanceType type, string name, int offset, Mobile owner = null) : base(owner, name)
     {
         _type = type;

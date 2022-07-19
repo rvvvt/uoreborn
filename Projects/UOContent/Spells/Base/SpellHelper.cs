@@ -1257,27 +1257,27 @@ namespace Server.Spells
 
                     if (transformSpell.PhysResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Physical, transformSpell.PhysResistOffset));
+                        mods.Add(new ResistanceMod(ResistanceType.Physical, "PhysicalResistTransform", transformSpell.PhysResistOffset));
                     }
 
                     if (transformSpell.FireResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Fire, transformSpell.FireResistOffset));
+                        mods.Add(new ResistanceMod(ResistanceType.Fire, "PhysicalResistTransform", transformSpell.FireResistOffset));
                     }
 
                     if (transformSpell.ColdResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Cold, transformSpell.ColdResistOffset));
+                        mods.Add(new ResistanceMod(ResistanceType.Cold, "ColdResistTransform", transformSpell.ColdResistOffset));
                     }
 
                     if (transformSpell.PoisResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Poison, transformSpell.PoisResistOffset));
+                        mods.Add(new ResistanceMod(ResistanceType.Poison, "PoisonResistTransform", transformSpell.PoisResistOffset));
                     }
 
                     if (transformSpell.NrgyResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Energy, transformSpell.NrgyResistOffset));
+                        mods.Add(new ResistanceMod(ResistanceType.Energy, "EnergyResistTransform", transformSpell.NrgyResistOffset));
                     }
 
                     if (!((Body)transformSpell.Body).IsHuman)

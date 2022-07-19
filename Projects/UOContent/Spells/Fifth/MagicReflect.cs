@@ -78,15 +78,15 @@ namespace Server.Spells.Fifth
                         targ.FixedParticles(0x375A, 10, 15, 5037, EffectLayer.Waist);
 
                         var physiMod = -25 + (int)(targ.Skills.Inscribe.Value / 20);
-                        var otherMod = 10;
+                        const int otherMod = 10;
 
                         mods = new[]
                         {
-                            new ResistanceMod(ResistanceType.Physical, physiMod),
-                            new ResistanceMod(ResistanceType.Fire, otherMod),
-                            new ResistanceMod(ResistanceType.Cold, otherMod),
-                            new ResistanceMod(ResistanceType.Poison, otherMod),
-                            new ResistanceMod(ResistanceType.Energy, otherMod)
+                            new ResistanceMod(ResistanceType.Physical, "PhysicalResistMagicResist", physiMod),
+                            new ResistanceMod(ResistanceType.Fire, "FireResistMagicResist", otherMod),
+                            new ResistanceMod(ResistanceType.Cold, "ColdResistMagicResist", otherMod),
+                            new ResistanceMod(ResistanceType.Poison, "PoisonResistMagicResist", otherMod),
+                            new ResistanceMod(ResistanceType.Energy, "EnergyResistMagicResist", otherMod)
                         };
 
                         _table[targ] = mods;
@@ -114,22 +114,19 @@ namespace Server.Spells.Fifth
                 {
                     Caster.SendLocalizedMessage(1005385); // The spell will not adhere to you at this time.
                 }
-                else if (CheckSequence())
+                else if (CheckSequence() && Caster.BeginAction<DefensiveSpell>())
                 {
-                    if (Caster.BeginAction<DefensiveSpell>())
-                    {
-                        var value = (int)(Caster.Skills.Magery.Value + Caster.Skills.Inscribe.Value);
-                        value = (int)(8 + value / 200.0 * 7.0); // absorb from 8 to 15 "circles"
+                    var value = (int)(Caster.Skills.Magery.Value + Caster.Skills.Inscribe.Value);
+                    value = (int)(8 + value / 200.0 * 7.0); // absorb from 8 to 15 "circles"
 
-                        Caster.MagicDamageAbsorb = value;
+                    Caster.MagicDamageAbsorb = value;
 
-                        Caster.FixedParticles(0x375A, 10, 15, 5037, EffectLayer.Waist);
-                        Caster.PlaySound(0x1E9);
-                    }
-                    else
-                    {
-                        Caster.SendLocalizedMessage(1005385); // The spell will not adhere to you at this time.
-                    }
+                    Caster.FixedParticles(0x375A, 10, 15, 5037, EffectLayer.Waist);
+                    Caster.PlaySound(0x1E9);
+                }
+                else
+                {
+                    Caster.SendLocalizedMessage(1005385); // The spell will not adhere to you at this time.
                 }
 
                 FinishSequence();

@@ -53,7 +53,7 @@ namespace Server.Spells.Necromancy
 
                 if (!_table.ContainsKey(m))
                 {
-                    var mod = new DefaultSkillMod(SkillName.MagicResist, false, 50.0);
+                    var mod = new DefaultSkillMod(SkillName.MagicResist, "MagicResistEvilOmen", false, 50.0);
 
                     if (m.Skills.MagicResist.Base > 50.0)
                     {

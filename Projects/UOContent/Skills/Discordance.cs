@@ -235,19 +235,11 @@ namespace Server.SkillHandlers
 
                                 scalar = effect * 0.01;
 
-                                mods.Add(new ResistanceMod(ResistanceType.Physical, effect));
-                                mods.Add(new ResistanceMod(ResistanceType.Fire, effect));
-                                mods.Add(new ResistanceMod(ResistanceType.Cold, effect));
-                                mods.Add(new ResistanceMod(ResistanceType.Poison, effect));
-                                mods.Add(new ResistanceMod(ResistanceType.Energy, effect));
-
-                                for (var i = 0; i < targ.Skills.Length; ++i)
-                                {
-                                    if (targ.Skills[i].Value > 0)
-                                    {
-                                        mods.Add(new DefaultSkillMod((SkillName)i, true, targ.Skills[i].Value * scalar));
-                                    }
-                                }
+                                mods.Add(new ResistanceMod(ResistanceType.Physical, "PhysicalResistDiscordance", effect));
+                                mods.Add(new ResistanceMod(ResistanceType.Fire, "FireResistDiscordance", effect));
+                                mods.Add(new ResistanceMod(ResistanceType.Cold, "ColdResistDiscordance", effect));
+                                mods.Add(new ResistanceMod(ResistanceType.Poison, "PoisonResistDiscordance", effect));
+                                mods.Add(new ResistanceMod(ResistanceType.Energy, "EnergyResistDiscordance", effect));
                             }
                             else
                             {
@@ -278,13 +270,14 @@ namespace Server.SkillHandlers
                                         TimeSpan.Zero
                                     )
                                 );
+                            }
 
-                                for (var i = 0; i < targ.Skills.Length; ++i)
+                            for (var i = 0; i < targ.Skills.Length; ++i)
+                            {
+                                var skill = targ.Skills[i];
+                                if (skill.Value > 0)
                                 {
-                                    if (targ.Skills[i].Value > 0)
-                                    {
-                                        mods.Add(new DefaultSkillMod((SkillName)i, true, targ.Skills[i].Value * scalar));
-                                    }
+                                    mods.Add(new DefaultSkillMod(skill.SkillName, $"{skill.Name}Discordance", true, skill.Value * scalar));
                                 }
                             }
 
