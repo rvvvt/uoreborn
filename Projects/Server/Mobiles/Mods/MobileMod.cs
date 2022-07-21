@@ -13,13 +13,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  *************************************************************************/
 
-using System;
 using ModernUO.Serialization;
 
 namespace Server;
 
 [SerializationGenerator(0)]
-public partial class MobileMod : IEquatable<MobileMod>
+public partial class MobileMod
 {
     [DirtyTrackingEntity]
     public Mobile Owner { get; set; }
@@ -34,36 +33,4 @@ public partial class MobileMod : IEquatable<MobileMod>
         Owner = owner;
         Name = name;
     }
-
-    public bool Equals(MobileMod other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return _name == other._name && Equals(Owner, other.Owner);
-    }
-
-    public override bool Equals(object obj)
-    {
-        if (ReferenceEquals(null, obj))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        return obj.GetType() == GetType() && Equals((MobileMod)obj);
-    }
-
-    public override int GetHashCode() => HashCode.Combine(_name, Owner);
 }
