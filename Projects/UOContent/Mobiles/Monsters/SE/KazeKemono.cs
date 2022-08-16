@@ -79,14 +79,13 @@ namespace Server.Mobiles
                 }
                 else
                 {
-                    defender.SendLocalizedMessage(
-                        1070850
-                    ); // The creature's flurry of twigs has made you more susceptible to physical attacks!
+                    // The creature's flurry of twigs has made you more susceptible to physical attacks!
+                    defender.SendLocalizedMessage(1070850);
                 }
 
                 var effect = -(defender.PhysicalResistance * 15 / 100);
 
-                var mod = new ResistanceMod(ResistanceType.Physical, "PhysicalResistKazeKemono", effect);
+                var mod = new ResistanceMod(ResistanceType.Physical, "PhysicalResistFlurryOfTwigs", effect);
 
                 defender.FixedEffect(0x37B9, 10, 5);
                 defender.AddResistanceMod(mod);
@@ -113,9 +112,8 @@ namespace Server.Mobiles
                 }
                 else
                 {
-                    defender.SendLocalizedMessage(
-                        1070827
-                    ); // The creature's attack has made you more susceptible to energy attacks!
+                    // The creature's attack has made you more susceptible to energy attacks!
+                    defender.SendLocalizedMessage(1070827);
                 }
 
                 var effect = -(defender.EnergyResistance / 2);
