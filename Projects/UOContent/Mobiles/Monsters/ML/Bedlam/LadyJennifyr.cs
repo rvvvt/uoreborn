@@ -88,7 +88,7 @@ namespace Server.Mobiles
             // The creature fans you with fire, reducing your resistance to fire attacks.
             defender.SendLocalizedMessage(1070833);
 
-            var mod = new ResistanceMod(ResistanceType.Fire, "FireResistLadyJennifyr", -10);
+            var mod = new ResistanceMod(ResistanceType.Fire, "FireResistFanningFire", -10);
             defender.AddResistanceMod(mod);
 
             m_Table[defender] = timer = new ExpireTimer(defender, mod);
