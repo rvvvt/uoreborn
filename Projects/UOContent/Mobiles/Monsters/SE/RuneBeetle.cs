@@ -120,16 +120,14 @@ namespace Server.Mobiles
                 defender.SendLocalizedMessage(1070846); // The creature magically corrupts your armor!
             }
 
-            var mods = new List<ResistanceMod>();
-
             if (Core.ML)
             {
                 if (defender.PhysicalResistance > 0)
                 {
-                    mods.Add(
+                    defender.AddResistanceMod(
                         new ResistanceMod(
                             ResistanceType.Physical,
-                            "PhysicalResistRuneBeetle",
+                            "RuneCorruption",
                             -(defender.PhysicalResistance / 2)
                         )
                     );
@@ -137,20 +135,20 @@ namespace Server.Mobiles
 
                 if (defender.FireResistance > 0)
                 {
-                    mods.Add(new ResistanceMod(ResistanceType.Fire, "FireResistRuneBeetle", -(defender.FireResistance / 2)));
+                    defender.AddResistanceMod(new ResistanceMod(ResistanceType.Fire, "RuneCorruption", -(defender.FireResistance / 2)));
                 }
 
                 if (defender.ColdResistance > 0)
                 {
-                    mods.Add(new ResistanceMod(ResistanceType.Cold, "ColdResistRuneBeetle", -(defender.ColdResistance / 2)));
+                    defender.AddResistanceMod(new ResistanceMod(ResistanceType.Cold, "RuneCorruption", -(defender.ColdResistance / 2)));
                 }
 
                 if (defender.PoisonResistance > 0)
                 {
-                    mods.Add(
+                    defender.AddResistanceMod(
                         new ResistanceMod(
                             ResistanceType.Poison,
-                            "PoisonResistRuneBeetle",
+                            "RuneCorruption",
                             -(defender.PoisonResistance / 2)
                         )
                     );
@@ -158,10 +156,10 @@ namespace Server.Mobiles
 
                 if (defender.EnergyResistance > 0)
                 {
-                    mods.Add(
+                    defender.AddResistanceMod(
                         new ResistanceMod(
                             ResistanceType.Energy,
-                            "EnergyResistRuneBeetle",
+                            "RuneCorruption",
                             -(defender.EnergyResistance / 2)
                         )
                     );
@@ -171,10 +169,10 @@ namespace Server.Mobiles
             {
                 if (defender.PhysicalResistance > 0)
                 {
-                    mods.Add(
+                    defender.AddResistanceMod(
                         new ResistanceMod(
                             ResistanceType.Physical,
-                            "PhysicalResistRuneBeetle",
+                            "RuneCorruption",
                             defender.PhysicalResistance > 70 ? -70 : -defender.PhysicalResistance
                         )
                     );
@@ -182,10 +180,10 @@ namespace Server.Mobiles
 
                 if (defender.FireResistance > 0)
                 {
-                    mods.Add(
+                    defender.AddResistanceMod(
                         new ResistanceMod(
                             ResistanceType.Fire,
-                            "FireResistRuneBeetle",
+                            "RuneCorruption",
                             defender.FireResistance > 70 ? -70 : -defender.FireResistance
                         )
                     );
@@ -193,10 +191,10 @@ namespace Server.Mobiles
 
                 if (defender.ColdResistance > 0)
                 {
-                    mods.Add(
+                    defender.AddResistanceMod(
                         new ResistanceMod(
                             ResistanceType.Cold,
-                            "ColdResistRuneBeetle",
+                            "RuneCorruption",
                             defender.ColdResistance > 70 ? -70 : -defender.ColdResistance
                         )
                     );
@@ -204,10 +202,10 @@ namespace Server.Mobiles
 
                 if (defender.PoisonResistance > 0)
                 {
-                    mods.Add(
+                    defender.AddResistanceMod(
                         new ResistanceMod(
                             ResistanceType.Poison,
-                            "PoisonResistRuneBeetle",
+                            "RuneCorruption",
                             defender.PoisonResistance > 70 ? -70 : -defender.PoisonResistance
                         )
                     );
@@ -215,24 +213,19 @@ namespace Server.Mobiles
 
                 if (defender.EnergyResistance > 0)
                 {
-                    mods.Add(
+                    defender.AddResistanceMod(
                         new ResistanceMod(
                             ResistanceType.Energy,
-                            "EnergyResistRuneBeetle",
+                            "RuneCorruption",
                             defender.EnergyResistance > 70 ? -70 : -defender.EnergyResistance
                         )
                     );
                 }
             }
 
-            for (var i = 0; i < mods.Count; ++i)
-            {
-                defender.AddResistanceMod(mods[i]);
-            }
-
             defender.FixedEffect(0x37B9, 10, 5);
 
-            timer = new ExpireTimer(defender, mods, TimeSpan.FromSeconds(5.0));
+            timer = new ExpireTimer(defender, TimeSpan.FromSeconds(5.0));
             timer.Start();
             m_Table[defender] = timer;
         }
@@ -266,21 +259,12 @@ namespace Server.Mobiles
         private class ExpireTimer : Timer
         {
             private readonly Mobile m_Mobile;
-            private readonly List<ResistanceMod> m_Mods;
 
-            public ExpireTimer(Mobile m, List<ResistanceMod> mods, TimeSpan delay) : base(delay)
-            {
-                m_Mobile = m;
-                m_Mods = mods;
-            }
+            public ExpireTimer(Mobile m, TimeSpan delay) : base(delay) => m_Mobile = m;
 
             public void DoExpire()
             {
-                for (var i = 0; i < m_Mods.Count; ++i)
-                {
-                    m_Mobile.RemoveResistanceMod(m_Mods[i]);
-                }
-
+                m_Mobile.RemoveResistanceMod("RuneCorruption");
                 Stop();
             }
 

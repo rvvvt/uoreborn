@@ -99,7 +99,7 @@ namespace Server.Mobiles
 
             if (Utility.RandomDouble() < 0.05)
             {
-                /* Chlorophyl Blast
+                /* Chlorophyll Blast
                  * Start cliloc: 1070827
                  * Effect: Energy resistance -50% for 10 seconds
                  * End cliloc: 1070829
@@ -120,7 +120,7 @@ namespace Server.Mobiles
 
                 var effect = -(defender.EnergyResistance / 2);
 
-                var mod = new ResistanceMod(ResistanceType.Energy, "EnergyResistKazeKemono", effect);
+                var mod = new ResistanceMod(ResistanceType.Energy, "EnergyResistChlorophyllBlast", effect);
 
                 defender.FixedEffect(0x37B9, 10, 5);
                 defender.AddResistanceMod(mod);

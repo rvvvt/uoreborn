@@ -3139,13 +3139,12 @@ namespace Server
                 return;
             }
 
-            for (var i = 0; i < _resistanceMods.Count; i++)
+            for (var i = _resistanceMods.Count - 1; i >= 0; i--)
             {
                 var mod = _resistanceMods[i];
                 if (mod.Name == name)
                 {
                     _resistanceMods.RemoveAt(i);
-                    break;
                 }
             }
 
@@ -3490,7 +3489,7 @@ namespace Server
                 return;
             }
 
-            for (var i = 0; i < _skillMods.Count; i++)
+            for (var i = _skillMods.Count - 1; i >= 0; i--)
             {
                 var mod = _skillMods[i];
                 if (mod.Name == name)
@@ -3498,7 +3497,6 @@ namespace Server
                     mod.Owner = null;
                     Skills[mod.Skill]?.Update();
                     _skillMods.RemoveAt(i);
-                    break;
                 }
             }
 
@@ -8406,7 +8404,7 @@ namespace Server
                 return;
             }
 
-            for (var i = 0; i < _statMods.Count; i++)
+            for (var i = _statMods.Count - 1; i >= 0; i--)
             {
                 var mod = _statMods[i];
                 if (mod.Name == name)
@@ -8414,7 +8412,6 @@ namespace Server
                     _statMods.RemoveAt(i);
                     CheckStatTimers();
                     Delta(MobileDelta.Stat | GetStatDelta(mod.Type));
-                    break;
                 }
             }
 

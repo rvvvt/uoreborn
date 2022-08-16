@@ -1253,31 +1253,29 @@ namespace Server.Spells
 
                 if (!ourTransform)
                 {
-                    var mods = new List<ResistanceMod>();
-
                     if (transformSpell.PhysResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Physical, "PhysicalResistTransform", transformSpell.PhysResistOffset));
+                        caster.AddResistanceMod(new ResistanceMod(ResistanceType.Physical, "TransformSpell", transformSpell.PhysResistOffset));
                     }
 
                     if (transformSpell.FireResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Fire, "PhysicalResistTransform", transformSpell.FireResistOffset));
+                        caster.AddResistanceMod(new ResistanceMod(ResistanceType.Fire, "TransformSpell", transformSpell.FireResistOffset));
                     }
 
                     if (transformSpell.ColdResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Cold, "ColdResistTransform", transformSpell.ColdResistOffset));
+                        caster.AddResistanceMod(new ResistanceMod(ResistanceType.Cold, "TransformSpell", transformSpell.ColdResistOffset));
                     }
 
                     if (transformSpell.PoisResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Poison, "PoisonResistTransform", transformSpell.PoisResistOffset));
+                        caster.AddResistanceMod(new ResistanceMod(ResistanceType.Poison, "TransformSpell", transformSpell.PoisResistOffset));
                     }
 
                     if (transformSpell.NrgyResistOffset != 0)
                     {
-                        mods.Add(new ResistanceMod(ResistanceType.Energy, "EnergyResistTransform", transformSpell.NrgyResistOffset));
+                        caster.AddResistanceMod(new ResistanceMod(ResistanceType.Energy, "TransformSpell", transformSpell.NrgyResistOffset));
                     }
 
                     if (!((Body)transformSpell.Body).IsHuman)
@@ -1293,17 +1291,12 @@ namespace Server.Spells
                     caster.BodyMod = transformSpell.Body;
                     caster.HueMod = transformSpell.Hue;
 
-                    for (var i = 0; i < mods.Count; ++i)
-                    {
-                        caster.AddResistanceMod(mods[i]);
-                    }
-
                     transformSpell.DoEffect(caster);
 
                     Timer timer = new TransformTimer(caster, transformSpell);
                     timer.Start();
 
-                    AddContext(caster, new TransformContext(timer, mods, ourType, transformSpell));
+                    AddContext(caster, new TransformContext(timer, ourType, transformSpell));
                     return true;
                 }
             }
@@ -1333,12 +1326,7 @@ namespace Server.Spells
                 return;
             }
 
-            var mods = context.Mods;
-
-            for (var i = 0; i < mods.Count; ++i)
-            {
-                m.RemoveResistanceMod(mods[i]);
-            }
+            m.RemoveResistanceMod("TransformSpell");
 
             if (resetGraphics)
             {
@@ -1382,17 +1370,14 @@ namespace Server.Spells
 
     public class TransformContext
     {
-        public TransformContext(Timer timer, List<ResistanceMod> mods, Type type, ITransformationSpell spell)
+        public TransformContext(Timer timer, Type type, ITransformationSpell spell)
         {
             Timer = timer;
-            Mods = mods;
             Type = type;
             Spell = spell;
         }
 
         public Timer Timer { get; }
-
-        public List<ResistanceMod> Mods { get; }
 
         public Type Type { get; }
 

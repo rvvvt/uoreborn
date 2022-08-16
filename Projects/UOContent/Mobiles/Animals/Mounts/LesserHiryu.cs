@@ -174,7 +174,7 @@ namespace Server.Mobiles
 
             var effect = -(defender.PhysicalResistance * 15 / 100);
 
-            var mod = new ResistanceMod(ResistanceType.Physical, "PhysicalResistHiryu", effect);
+            var mod = new ResistanceMod(ResistanceType.Physical, "PhysicalResistGraspingClaw", effect);
 
             defender.FixedEffect(0x37B9, 10, 5);
             defender.AddResistanceMod(mod);

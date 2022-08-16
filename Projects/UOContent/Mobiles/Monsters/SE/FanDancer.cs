@@ -134,7 +134,7 @@ namespace Server.Mobiles
 
                 var effect = -(defender.FireResistance / 10);
 
-                var mod = new ResistanceMod(ResistanceType.Fire, "FireResistFanDancer", effect);
+                var mod = new ResistanceMod(ResistanceType.Fire, "FireResistFanningFire", effect);
 
                 defender.FixedParticles(0x37B9, 10, 30, 0x34, EffectLayer.RightFoot);
                 defender.PlaySound(0x208);
