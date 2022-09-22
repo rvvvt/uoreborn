@@ -339,8 +339,8 @@ namespace Server
 
             DefaultMobileInit();
 
+            World.SetMobileTypeRef(this);
             World.AddEntity(this);
-            SetTypeRef(GetType());
         }
 
         public Mobile(Serial serial)
@@ -352,18 +352,11 @@ namespace Server
             NextSkillTime = Core.TickCount;
             DamageEntries = new List<DamageEntry>();
 
-            SetTypeRef(GetType());
+            World.SetMobileTypeRef(this);
         }
 
         public void SetTypeRef(Type type)
         {
-            TypeRef = World.MobileTypes.IndexOf(type);
-
-            if (TypeRef == -1)
-            {
-                World.MobileTypes.Add(type);
-                TypeRef = World.MobileTypes.Count - 1;
-            }
         }
 
         public static bool DragEffects { get; set; } = true;

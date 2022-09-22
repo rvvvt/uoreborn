@@ -1,6 +1,6 @@
 /*************************************************************************
  * ModernUO                                                              *
- * Copyright 2019-2020 - ModernUO Development Team                       *
+ * Copyright 2019-2022 - ModernUO Development Team                       *
  * Email: hi@modernuo.com                                                *
  * File: EntityIndex.cs                                                  *
  *                                                                       *
@@ -13,24 +13,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  *************************************************************************/
 
-namespace Server
+namespace Server;
+
+public readonly struct EntitySpan<T> where T : ISerializable
 {
-    public readonly struct EntityIndex<T> where T : ISerializable
+    public T Entity { get; }
+
+    public long Position { get; }
+
+    public int Length { get; }
+
+    public EntitySpan(T entity, long position, int length)
     {
-        public T Entity { get; }
-
-        public int TypeID { get;  }
-
-        public long Position { get; }
-
-        public int Length { get; }
-
-        public EntityIndex(T entity, int typeID, long position, int length)
-        {
-            Entity = entity;
-            TypeID = typeID;
-            Position = position;
-            Length = length;
-        }
+        Entity = entity;
+        Position = position;
+        Length = length;
     }
 }

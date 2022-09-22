@@ -125,9 +125,9 @@ namespace Server
 
         private static void OutOfMemory(string message) => throw new OutOfMemoryException(message);
 
-        internal static List<Type> ItemTypes { get; } = new();
-        internal static List<Type> MobileTypes { get; } = new();
-        internal static List<Type> GuildTypes { get; } = new();
+        internal static Dictionary<ulong, Type> ItemTypes { get; } = new();
+        internal static Dictionary<ulong, Type> MobileTypes { get; } = new();
+        internal static Dictionary<ulong, Type> GuildTypes { get; } = new();
 
         public static string SavePath { get; private set; }
 
@@ -238,9 +238,9 @@ namespace Server
             IIndexInfo<Serial> mobileIndexInfo = new EntityTypeIndex("Mobiles");
             IIndexInfo<Serial> guildIndexInfo = new EntityTypeIndex("Guilds");
 
-            Mobiles = EntityPersistence.LoadIndex(basePath, mobileIndexInfo, out List<EntityIndex<Mobile>> mobiles);
-            Items = EntityPersistence.LoadIndex(basePath, itemIndexInfo, out List<EntityIndex<Item>> items);
-            Guilds = EntityPersistence.LoadIndex(basePath, guildIndexInfo, out List<EntityIndex<BaseGuild>> guilds);
+            Mobiles = EntityPersistence.LoadIndex(basePath, mobileIndexInfo, out List<EntitySpan<Mobile>> mobiles);
+            Items = EntityPersistence.LoadIndex(basePath, itemIndexInfo, out List<EntitySpan<Item>> items);
+            Guilds = EntityPersistence.LoadIndex(basePath, guildIndexInfo, out List<EntitySpan<BaseGuild>> guilds);
 
             if (Mobiles.Count > 0)
             {
@@ -537,6 +537,24 @@ namespace Server
             }
 
             ThreadPool.QueueUserWorkItem(WriteFiles);
+        }
+
+        internal static void SetItemTypeRef(Item item)
+        {
+            var type = item.GetType();
+            ItemTypes[AssemblyHandler.GetTypeRef(type)] = type;
+        }
+
+        internal static void SetMobileTypeRef(Mobile mobile)
+        {
+            var type = mobile.GetType();
+            MobileTypes[AssemblyHandler.GetTypeRef(type)] = type;
+        }
+
+        internal static void SetGuildTypeRef(BaseGuild g)
+        {
+            var type = g.GetType();
+            MobileTypes[AssemblyHandler.GetTypeRef(type)] = type;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

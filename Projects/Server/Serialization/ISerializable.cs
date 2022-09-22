@@ -28,7 +28,6 @@ namespace Server
         long SavePosition { get; protected internal set; }
         BufferWriter SaveBuffer { get; protected internal set; }
 
-        int TypeRef { get; }
         Serial Serial { get; }
 
         // Executed on every entity, before it's serialized.
@@ -38,8 +37,6 @@ namespace Server
         void Serialize(IGenericWriter writer);
         void Delete();
         bool Deleted { get; }
-
-        void SetTypeRef(Type type);
 
         public void InitializeSaveBuffer(byte[] buffer)
         {

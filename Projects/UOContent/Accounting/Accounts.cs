@@ -14,7 +14,7 @@ namespace Server.Accounting
         private static readonly Dictionary<string, Account> _accountsByName = new(32, StringComparer.OrdinalIgnoreCase);
         private static Dictionary<Serial, Account> _accountsById = new(32);
         private static Serial _lastAccount;
-        internal static List<Type> Types { get; } = new();
+        internal static Dictionary<ulong, Type> Types { get; } = new();
 
         private static void OutOfMemory(string message) => throw new OutOfMemoryException(message);
 
@@ -86,7 +86,7 @@ namespace Server.Accounting
 
             IIndexInfo<Serial> indexInfo = new EntityTypeIndex("Accounts");
 
-            _accountsById = EntityPersistence.LoadIndex(path, indexInfo, out List<EntityIndex<Account>> accounts);
+            _accountsById = EntityPersistence.LoadIndex(path, indexInfo, out List<EntitySpan<Account>> accounts);
 
             if (_accountsById.Count > 0)
             {

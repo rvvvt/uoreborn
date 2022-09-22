@@ -30,26 +30,19 @@ namespace Server.Guilds
         protected BaseGuild()
         {
             Serial = World.NewGuild;
-            World.AddGuild(this);
 
-            SetTypeRef(GetType());
+            World.SetGuildTypeRef(this);
+            World.AddGuild(this);
         }
 
         protected BaseGuild(Serial serial)
         {
             Serial = serial;
-            SetTypeRef(GetType());
+            World.SetGuildTypeRef(this);
         }
 
         public void SetTypeRef(Type type)
         {
-            TypeRef = World.GuildTypes.IndexOf(type);
-
-            if (TypeRef == -1)
-            {
-                World.GuildTypes.Add(type);
-                TypeRef = World.GuildTypes.Count - 1;
-            }
         }
 
         public abstract string Abbreviation { get; set; }
