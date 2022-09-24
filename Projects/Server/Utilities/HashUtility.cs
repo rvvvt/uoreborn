@@ -35,7 +35,7 @@ public static class HashUtility
     // **********************************************************
     private const ulong xxHash3Seed = 9609125370673258709ul; // Randomly generated 64-bit prime number
 
-    public static ulong ComputeHash64(FastHashAlgorithm algorithm, string? data) =>
+    public static ulong ComputeHash64(string? data, FastHashAlgorithm algorithm = FastHashAlgorithm.XXHash3_64) =>
         algorithm switch
         {
             FastHashAlgorithm.XXHash3_64 => ComputeXXHash364(data),

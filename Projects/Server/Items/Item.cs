@@ -216,15 +216,10 @@ namespace Server
 
             SetLastMoved();
 
-            World.SetItemTypeRef(this);
             World.AddEntity(this);
         }
 
-        public Item(Serial serial)
-        {
-            Serial = serial;
-            World.SetItemTypeRef(this);
-        }
+        public Item(Serial serial) => Serial = serial;
 
         public void SetTypeRef(Type type)
         {

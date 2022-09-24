@@ -15,17 +15,22 @@
 
 using System;
 using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Server.Collections;
+using Server.Logging;
 using Server.Text;
 
 namespace Server;
 
 public class BufferReader : IGenericReader
 {
+    private static readonly ILogger logger = LogFactory.GetLogger(typeof(BufferReader));
+
+    private Dictionary<ulong, string> _typesDb;
     private Encoding _encoding;
     private byte[] _buffer;
     private int _position;
@@ -38,7 +43,11 @@ public class BufferReader : IGenericReader
         _encoding = encoding ?? TextEncoding.UTF8;
     }
 
-    public BufferReader(byte[] buffer, DateTime lastSerialized) : this(buffer) => LastSerialized = lastSerialized;
+    public BufferReader(byte[] buffer, DateTime lastSerialized, Dictionary<ulong, string> typesDb) : this(buffer)
+    {
+        LastSerialized = lastSerialized;
+        _typesDb = typesDb;
+    }
 
     public void Reset(byte[] newBuffer, out byte[] oldBuffer)
     {
@@ -142,6 +151,34 @@ public class BufferReader : IGenericReader
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Serial ReadSerial() => (Serial)ReadUInt();
+
+    public Type ReadType()
+    {
+        var hash = ReadULong();
+        if (!_typesDb.TryGetValue(hash, out var typeName))
+        {
+            logger.Error(
+                new Exception($"Hash {hash} was not found in types database."),
+                "Invalid {Hash} at position {Position}",
+                hash,
+                _position
+            );
+
+            return null;
+        }
+
+        var t = AssemblyHandler.FindTypeByFullName(typeName, false);
+        if (t == null)
+        {
+            logger.Error(
+                new Exception($"Type '{typeName}' was not found."),
+                "Type {Type} was not found.",
+                typeName
+            );
+        }
+
+        return t;
+    }
 
     public int Read(Span<byte> buffer)
     {

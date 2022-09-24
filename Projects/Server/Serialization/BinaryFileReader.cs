@@ -14,17 +14,22 @@
  *************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Server.Buffers;
 using Server.Collections;
+using Server.Logging;
 using Server.Text;
 
 namespace Server;
 
 public class BinaryFileReader : IGenericReader, IDisposable
 {
+    private static readonly ILogger logger = LogFactory.GetLogger(typeof(BinaryFileReader));
+
+    private Dictionary<ulong, string> _typesDb;
     private BinaryReader _reader;
     private Encoding _encoding;
 

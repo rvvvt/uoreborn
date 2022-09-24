@@ -14,6 +14,7 @@
  *************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Server;
@@ -44,7 +45,7 @@ public static class GenericPersistence
             AdhocPersistence.WriteSnapshot(binPath, buffer);
         }
 
-        void Deserialize(string savePath) =>
+        void Deserialize(string savePath, Dictionary<ulong, string> typesDb) =>
             AdhocPersistence.Deserialize(Path.Combine(savePath, name, $"{name}.bin"), deserializer);
 
         Persistence.Register(name, Serialize, WriterSnapshot, Deserialize, priority);

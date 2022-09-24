@@ -31,15 +31,10 @@ namespace Server.Guilds
         {
             Serial = World.NewGuild;
 
-            World.SetGuildTypeRef(this);
             World.AddGuild(this);
         }
 
-        protected BaseGuild(Serial serial)
-        {
-            Serial = serial;
-            World.SetGuildTypeRef(this);
-        }
+        protected BaseGuild(Serial serial) => Serial = serial;
 
         public void SetTypeRef(Type type)
         {

@@ -339,7 +339,6 @@ namespace Server
 
             DefaultMobileInit();
 
-            World.SetMobileTypeRef(this);
             World.AddEntity(this);
         }
 
@@ -351,8 +350,6 @@ namespace Server
             Aggressed = new List<AggressorInfo>();
             NextSkillTime = Core.TickCount;
             DamageEntries = new List<DamageEntry>();
-
-            World.SetMobileTypeRef(this);
         }
 
         public void SetTypeRef(Type type)

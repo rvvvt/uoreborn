@@ -28,7 +28,7 @@ public static class EntityPersistence
     public static void WriteEntities<I, T>(
         IIndexInfo<I> indexInfo,
         Dictionary<I, T> entities,
-        Dictionary<ulong, Type> types,
+        // HashSet<Type> types,
         string savePath,
         out Dictionary<string, int> counts
     ) where T : class, ISerializable
@@ -42,11 +42,9 @@ public static class EntityPersistence
         PathUtility.EnsureDirectory(path);
 
         string idxPath = Path.Combine(path, $"{typeName}.idx");
-        string tdbPath = Path.Combine(path, $"{typeName}.tdb");
         string binPath = Path.Combine(path, $"{typeName}.bin");
 
         using var idx = new BinaryFileWriter(idxPath, false);
-        using var tdb = new BinaryFileWriter(tdbPath, false);
         using var bin = new BinaryFileWriter(binPath, true);
 
         idx.Write(2); // Version
@@ -71,12 +69,6 @@ public static class EntityPersistence
                 counts[type] = (counts.TryGetValue(type, out var count) ? count : 0) + 1;
             }
         }
-
-        tdb.Write(types.Count);
-        foreach (var type in types.Values)
-        {
-            tdb.Write(type.FullName);
-        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -88,6 +80,7 @@ public static class EntityPersistence
     public static Dictionary<I, T> LoadIndex<I, T>(
         string path,
         IIndexInfo<I> indexInfo,
+        Dictionary<ulong, string> typeDb,
         out List<EntitySpan<T>> entities
     ) where T : class, ISerializable
     {
@@ -97,11 +90,10 @@ public static class EntityPersistence
         var indexType = indexInfo.TypeName;
 
         string indexPath = Path.Combine(path, indexType, $"{indexType}.idx");
-        string typesPath = Path.Combine(path, indexType, $"{indexType}.tdb");
 
         entities = new List<EntitySpan<T>>();
 
-        if (!File.Exists(indexPath) || !File.Exists(typesPath))
+        if (!File.Exists(indexPath))
         {
             return map;
         }
@@ -112,9 +104,26 @@ public static class EntityPersistence
         var version = idxReader.ReadInt32();
         int count = idxReader.ReadInt32();
 
-        using FileStream tdb = new FileStream(typesPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        BinaryReader tdbReader = new BinaryReader(tdb);
-        Dictionary<ulong, ConstructorInfo> types = ReadTypes<I>(tdbReader, version);
+        var ctorArguments = new[] { typeof(I) };
+        Dictionary<ulong, ConstructorInfo> types;
+
+        if (version < 2)
+        {
+            string typesPath = Path.Combine(path, indexType, $"{indexType}.tdb");
+            if (!File.Exists(typesPath))
+            {
+                return map;
+            }
+
+            using FileStream tdb = new FileStream(typesPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            BinaryReader tdbReader = new BinaryReader(tdb);
+            types = ReadTypes(tdbReader, ctorArguments);
+            tdbReader.Close();
+        }
+        else
+        {
+            types = new Dictionary<ulong, ConstructorInfo>();
+        }
 
         var now = DateTime.UtcNow;
 
@@ -127,7 +136,13 @@ public static class EntityPersistence
             var pos = idxReader.ReadInt64();
             var length = idxReader.ReadInt32();
 
-            if (!types.TryGetValue(hash, out var ctor) || ctor == null)
+            if (!types.TryGetValue(hash, out var ctor) && version >= 2)
+            {
+                typeDb.TryGetValue(hash, out var typeName);
+                types[hash] = ctor = GetConstructorFor(typeName, AssemblyHandler.GetTypeRef(hash), ctorArguments);
+            }
+
+            if (ctor == null)
             {
                 continue;
             }
@@ -136,16 +151,15 @@ public static class EntityPersistence
 
             ctorArgs[0] = indexer;
 
-            if (ctor.Invoke(ctorArgs) is T t)
+            if (ctor.Invoke(ctorArgs) is T entity)
             {
-                t.Created = created;
-                t.LastSerialized = lastSerialized;
-                entities.Add(new EntitySpan<T>(t, pos, length));
-                map[indexer] = t;
+                entity.Created = created;
+                entity.LastSerialized = lastSerialized;
+                entities.Add(new EntitySpan<T>(entity, pos, length));
+                map[indexer] = entity;
             }
         }
 
-        tdbReader.Close();
         idxReader.Close();
 
         return map;
@@ -248,11 +262,8 @@ public static class EntityPersistence
         }
     }
 
-    private static ConstructorInfo GetConstructorFor(string typeName, Type[] constructorTypes, out ulong hash)
+    private static ConstructorInfo GetConstructorFor(string typeName, Type t, Type[] constructorTypes)
     {
-        hash = AssemblyHandler.GetTypeRef(typeName);
-        var t = AssemblyHandler.FindTypeByFullName(typeName, false);
-
         if (t?.IsAbstract != false)
         {
             Console.WriteLine("failed");
@@ -282,19 +293,19 @@ public static class EntityPersistence
         return ctor;
     }
 
-    private static Dictionary<ulong, ConstructorInfo> ReadTypes<I>(BinaryReader tdbReader, int version)
+    private static Dictionary<ulong, ConstructorInfo> ReadTypes(BinaryReader tdbReader, Type[] ctorArguments)
     {
-        var constructorTypes = new[] { typeof(I) };
-
         var count = tdbReader.ReadInt32();
 
         var types = new Dictionary<ulong, ConstructorInfo>(count);
 
-        for (uint i = 0; i < count; ++i)
+        for (var i = 0; i < count; ++i)
         {
             var typeName = tdbReader.ReadString();
-            var ctor = GetConstructorFor(typeName, constructorTypes, out ulong hash);
-            types[version >= 2 ? hash : i] = ctor;
+            var t = AssemblyHandler.FindTypeByFullName(typeName, false);
+            var hash = HashUtility.ComputeHash64(typeName);
+            var ctor = GetConstructorFor(typeName, t, ctorArguments);
+            types[hash] = ctor;
         }
 
         return types;

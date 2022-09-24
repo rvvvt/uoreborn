@@ -20,7 +20,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using Server.Logging;
 
 namespace Server;
 
@@ -30,6 +29,7 @@ public static class AssemblyHandler
     private static TypeCache m_NullCache;
 
     public static Assembly[] Assemblies { get; set; }
+    public static Dictionary<ulong, Type> TypeRefs { get; } = new();
 
     internal static Assembly AssemblyResolver(object sender, ResolveEventArgs args)
     {
@@ -167,8 +167,18 @@ public static class AssemblyHandler
     public static ulong GetTypeRef(Type type) => GetTypeRef(type.FullName);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong GetTypeRef(string key) =>
-        key == null ? 0 : HashUtility.ComputeHash64(FastHashAlgorithm.XXHash3_64, key);
+    public static ulong GetTypeRef(string key) => key == null ? 0 : HashUtility.ComputeHash64(key);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Type GetTypeRef(ulong hash) => TypeRefs.TryGetValue(hash, out var type) ? type : null;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ulong AddTypeRef(Type t)
+    {
+        var hash = GetTypeRef(t);
+        TypeRefs[hash] = t;
+        return hash;
+    }
 
     public static TypeCache GetTypeCache(Assembly asm)
     {
@@ -214,30 +224,27 @@ public static class AssemblyHandler
 
 public class TypeCache
 {
-    private static ILogger logger = LogFactory.GetLogger(typeof(TypeCache));
-
-    private Dictionary<ulong, Type[]> _nameMap = new();
-    private Dictionary<ulong, Type[]> _nameMapInsensitive = new();
-    private Dictionary<ulong, Type[]> _fullNameMap = new();
-    private Dictionary<ulong, Type[]> _fullNameMapInsensitive = new();
+    private Dictionary<string, Type[]> _nameMap = new();
+    private Dictionary<string, Type[]> _nameMapInsensitive = new();
+    private Dictionary<string, Type[]> _fullNameMap = new();
+    private Dictionary<string, Type[]> _fullNameMapInsensitive = new();
 
     public TypeCache(Assembly asm)
     {
         Types = asm?.GetTypes() ?? Type.EmptyTypes;
 
-        var nameMap = new Dictionary<ulong, HashSet<Type>>();
-        var nameMapInsensitive = new Dictionary<ulong, HashSet<Type>>();
-        var fullNameMap = new Dictionary<ulong, HashSet<Type>>();
-        var fullNameMapInsensitive = new Dictionary<ulong, HashSet<Type>>();
+        var nameMap = new Dictionary<string, HashSet<Type>>();
+        var nameMapInsensitive = new Dictionary<string, HashSet<Type>>();
+        var fullNameMap = new Dictionary<string, HashSet<Type>>();
+        var fullNameMapInsensitive = new Dictionary<string, HashSet<Type>>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void addTypeToRefs(Type type, string typeName, string fullTypeName)
         {
-            var fullTypeNameHash = AssemblyHandler.GetTypeRef(fullTypeName);
-            AddToRefs(type, AssemblyHandler.GetTypeRef(typeName), nameMap);
-            AddToRefs(type, AssemblyHandler.GetTypeRef(typeName.ToLower()), nameMapInsensitive);
-            AddToRefs(type, fullTypeNameHash, fullNameMap);
-            AddToRefs(type, AssemblyHandler.GetTypeRef(fullTypeName.ToLower()), fullNameMapInsensitive);
+            AddToRefs(type, typeName, nameMap);
+            AddToRefs(type, typeName.ToLower(), nameMapInsensitive);
+            AddToRefs(type, fullTypeName, fullNameMap);
+            AddToRefs(type, fullTypeName.ToLower(), fullNameMapInsensitive);
         }
 
         var aliasType = typeof(TypeAliasAttribute);
@@ -278,21 +285,21 @@ public class TypeCache
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AddToRefs(Type type, ulong hash, Dictionary<ulong, HashSet<Type>> map)
+    private static void AddToRefs(Type type, string key, Dictionary<string, HashSet<Type>> map)
     {
-        if (hash == 0)
+        if (key == null || key.Length == 0)
         {
             return;
         }
 
-        if (map.TryGetValue(hash, out var refs))
+        if (map.TryGetValue(key, out var refs))
         {
             refs.Add(type);
         }
         else
         {
             refs = new HashSet<Type> { type };
-            map.Add(hash, refs);
+            map.Add(key, refs);
         }
     }
 
@@ -332,15 +339,13 @@ public class TypeCache
         {
             if (ignoreCase)
             {
-                var hash = AssemblyHandler.GetTypeRef(name.ToLower());
                 var map = full ? cache._fullNameMapInsensitive : cache._nameMapInsensitive;
-                _values = map.TryGetValue(hash, out var values) ? values : Array.Empty<Type>();
+                _values = map.TryGetValue(name.ToLower(), out var values) ? values : Array.Empty<Type>();
             }
             else
             {
-                var hash = AssemblyHandler.GetTypeRef(name);
                 var map = full ? cache._fullNameMap : cache._nameMap;
-                _values = map.TryGetValue(hash, out var values) ? values : Array.Empty<Type>();
+                _values = map.TryGetValue(name, out var values) ? values : Array.Empty<Type>();
             }
 
             _index = 0;

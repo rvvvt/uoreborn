@@ -37,6 +37,7 @@ namespace Server
         void Write(sbyte value);
         void Write(bool value);
         void Write(Serial serial);
+        void Write(Type type) => Write(AssemblyHandler.AddTypeRef(type));
 
         void Write(DateTime value)
         {
