@@ -37,14 +37,12 @@ namespace Server
         public static int Damage(
             Mobile m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy,
             int chaos
-        ) =>
-            Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, chaos);
+        ) => Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, chaos);
 
         public static int Damage(
             Mobile m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy,
             bool keepAlive
-        ) =>
-            Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, 0, 0, keepAlive);
+        ) => Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, 0, 0, keepAlive);
 
         public static int Damage(
             Mobile m, Mobile from, int damage, bool ignoreArmor, int phys, int fire, int cold, int pois,
@@ -80,20 +78,30 @@ namespace Server
                 switch (Utility.Random(5))
                 {
                     case 0:
-                        phys += chaos;
-                        break;
+                        {
+                            phys += chaos;
+                            break;
+                        }
                     case 1:
-                        fire += chaos;
-                        break;
+                        {
+                            fire += chaos;
+                            break;
+                        }
                     case 2:
-                        cold += chaos;
-                        break;
+                        {
+                            cold += chaos;
+                            break;
+                        }
                     case 3:
-                        pois += chaos;
-                        break;
+                        {
+                            pois += chaos;
+                            break;
+                        }
                     case 4:
-                        nrgy += chaos;
-                        break;
+                        {
+                            nrgy += chaos;
+                            break;
+                        }
                 }
             }
 
@@ -186,26 +194,24 @@ namespace Server
                 totalDamage = m.Hits;
             }
 
-            if (from?.Deleted == false && from.Alive)
+            if (from is { Deleted: false, Alive: true })
             {
                 var reflectPhys = AosAttributes.GetValue(m, AosAttribute.ReflectPhysical);
 
+                if (reflectPhys != 0 && from is BaseCreature bcFrom)
+                {
+                    var magicalBarrier = bcFrom.GetAbility(MonsterAbilityType.MagicalBarrier);
+                    magicalBarrier.AlterMeleeDamageFrom(bcFrom, m, ref reflectPhys);
+                }
+
                 if (reflectPhys != 0)
                 {
-                    if ((from as ExodusMinion)?.FieldActive == true ||
-                        (from as ExodusOverseer)?.FieldActive == true)
-                    {
-                        from.FixedParticles(0x376A, 20, 10, 0x2530, EffectLayer.Waist);
-                        from.PlaySound(0x2F4);
-                        m.SendAsciiMessage("Your weapon cannot penetrate the creature's magical barrier");
-                    }
-                    else
-                    {
-                        from.Damage(
-                            Scale(damage * phys * (100 - (ignoreArmor ? 0 : m.PhysicalResistance)) / 10000, reflectPhys),
-                            m
-                        );
-                    }
+                    var reflectDamage = Scale(
+                        damage * phys * (100 - (ignoreArmor ? 0 : m.PhysicalResistance)) / 10000,
+                        reflectPhys
+                    );
+
+                    from.Damage(reflectDamage, m);
                 }
             }
 
